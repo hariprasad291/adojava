@@ -1,0 +1,65 @@
+trigger:
+  branches:
+    include:
+      -  main
+
+pool:
+  name: 'azure-usecase'
+
+variables:
+  IMAGE_NAME: 'my-java-app'
+  ACR_NAME: 'javaexample'
+  RESOURCE_GROUP: 'azure-usecase'
+  AKS_CLUSTER: 'test-cluster'
+  NAMESPACE: 'default'
+  TAG: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: 'Build Java and Docker Image'
+  jobs:
+  - job: Build
+    steps: 
+    - task: Maven@3
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'package'
+    
+    - task: Docker@2
+      inputs:
+        command: login
+        containerRegistry: 'javaexample' #'AzureContainerRegistryConnection'
+    
+    - task: Docker@2
+      inputs:
+        command: buildAndPush
+        containerRegistry: 'javaexample'
+        repository: '$(ACR_NAME).azurecr.io/$(IMAGE_NAME)'
+        dockerfile: 'Dockerfile'
+        tags: |
+         $(TAG)
+         latest
+
+- stage: Deploy
+  displayName: 'Deploy to AKS'
+  jobs:
+  - job: Deploy
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'testsubscription'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az aks get-credentials --resource-group $(RESOURCE_GROUP) --name $(AKS_CLUSTER) --overwrite-existing
+
+    - task: kubernetesManifest@0
+      inputs:
+        action: 'deploy'
+        kubernetesServiceConnection: 'test-cluster-javaapp' #'KubernetesServiceConnection'
+        namespace: '$(NAMESPACE)'
+        manifests: |
+          manifests/deployment.yaml
+          manifests/service.yaml
+        containers: |
+          $(ACR_NAME).azure.io/$(IMAGE_NAME):$(TAG)

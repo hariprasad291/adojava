@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: nginx
+  app: we-server
+spe:
+  replicas:2
+  selector:
+    matchLabeles:
+      metadata:
+  template:
+    spec:
+      container:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containePort: 80
+---
+apiVersion: v1
+kind: Ingress

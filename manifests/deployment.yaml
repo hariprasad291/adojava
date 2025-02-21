@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-java-app
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-jav-app
+    template:
+      metadata: 
+        labels:
+          app: my-java-app
+      spec:
+        containers:
+          - name: my-java-app
+            image: $(ACR_NAME).azure.io/$(IMAGE_NAME):$(TAG)
+            ports:
+            - containerPort: 8080
