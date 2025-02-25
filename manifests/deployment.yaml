@@ -4,17 +4,17 @@ metadata:
   name: my-java-app
   namespace: default
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      app: my-jav-app
-    template:
-      metadata: 
-        labels:
-          app: my-java-app
-      spec:
-        containers:
-          - name: my-java-app
-            image: $(ACR_NAME).azure.io/$(IMAGE_NAME):$(TAG)
-            ports:
-            - containerPort: 8080
+      app: my-java-app
+  template:
+    metadata:
+      labels:
+        app: my-java-app
+    spec:
+      containers:
+        - name: my-java-app
+          image: javaexample.azurecr.io/javaexample.azurecr.io/my-java-app:latest
+          ports:
+          - containerPort: 8080

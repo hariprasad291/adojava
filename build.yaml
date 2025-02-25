@@ -11,6 +11,7 @@ variables:
   ACR_NAME: 'javaexample'
   RESOURCE_GROUP: 'azure-usecase'
   AKS_CLUSTER: 'test-cluster'
+  RESOURCE_GROUP_AKS: 'test-cluster_group'
   NAMESPACE: 'default'
   TAG: '$(Build.BuildId)'
 
@@ -47,19 +48,17 @@ stages:
     steps:
     - task: AzureCLI@2
       inputs:
-        azureSubscription: 'testsubscription'
+        azureSubscription: 'aksresourcegroup'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az aks get-credentials --resource-group $(RESOURCE_GROUP) --name $(AKS_CLUSTER) --overwrite-existing
+          az aks get-credentials --resource-group $(RESOURCE_GROUP_AKS) --name $(AKS_CLUSTER) --overwrite-existing
 
     - task: kubernetesManifest@0
       inputs:
         action: 'deploy'
-        kubernetesServiceConnection: 'test-cluster-javaapp' #'KubernetesServiceConnection'
+        kubernetesServiceConnection: 'aks-test-cluster' #'KubernetesServiceConnection'
         namespace: '$(NAMESPACE)'
         manifests: |
           manifests/deployment.yaml
           manifests/service.yaml
-        containers: |
-          $(ACR_NAME).azure.io/$(IMAGE_NAME):$(TAG)
